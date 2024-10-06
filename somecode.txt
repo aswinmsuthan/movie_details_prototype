@@ -1,0 +1,113 @@
+import Image from 'next/image';
+import { notFound } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+
+// interface MediaDetails {
+//   id: string;
+//   title: string;
+//   overview: string;
+//   posterUrl: string;
+//   titleCardUrl: string;
+//   releaseDate: string;
+//   rating: number;
+//   genre: string[];
+//   type: 'movie' | 'tvshow';
+// }
+
+// Mock function to simulate data fetching
+// async function getMediaDetails(id: string): Promise<MediaDetails | null> {
+//   // In a real app, this would be an API call
+//   const mockData: Record<string, MediaDetails> = {
+//     '1': {
+//       id: '1',
+//       title: 'Inception',
+//       overview: 'Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets is offered a chance to regain his old life as payment for a task considered to be impossible: "inception", the implantation of another persons idea into a targets subconscious.',
+//       posterUrl: 'https://image.tmdb.org/t/p/original/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg',
+//       titleCardUrl: 'https://image.tmdb.org/t/p/original/ljsZTbVsrQSqZgWeep2B1QiDKuh.jpg',
+//       releaseDate: '2010-07-16',
+//       rating: 8.8,
+//       genre: ['Action', 'Sci-Fi', 'Thriller'],
+//       type: 'movie'
+//     },
+//     '2': {
+//       id: '2',
+//       title: 'The Matrix',
+//       overview: 'A computer programmer discovers the shocking truth about his reality and his role in the war against its controllers.',
+//       posterUrl: 'https://image.tmdb.org/t/p/original/ncEsesgOJDNrTUED89hYbA117wo.jpg',
+//       titleCardUrl: 'https://image.tmdb.org/t/p/original/p96dm7sCMn4VYAStA6siNz30G1r.jpg',
+//       releaseDate: '1999-03-31',
+//       rating: 8.7,
+//       genre: ['Action', 'Sci-Fi'],
+//       type: 'movie'
+//     },
+//     '3': {
+//       id: '3',
+//       title: 'Breaking Bad',
+//       overview: 'A high school chemistry teacher turned methamphetamine producer navigates the dangers of the drug trade.',
+//       posterUrl: 'https://image.tmdb.org/t/p/original/9faGSFi5jam6pDWGNd0p8JcJgXQ.jpg',
+//       titleCardUrl: 'https://image.tmdb.org/t/p/original/3xnWaLQjelJDDF7LT1WBo6f4BRe.jpg',
+//       releaseDate: '2008-01-20',
+//       rating: 9.5,
+//       genre: ['Crime', 'Drama', 'Thriller'],
+//       type: 'tvshow'
+//     }
+//   };
+
+//   await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+//   return mockData[id] || null;
+// }
+
+export default async function MediaDetailPage({ params }: { params: { id: string } }) {
+  // const media = await getMediaDetails(params.id);
+
+  // if (!media) {
+  //   notFound();
+  // }
+  //api--------
+  const router = useRouter();
+  const { id } = router.query;
+  const [details, setDetails] = useState(null);
+
+  useEffect(() => {
+    if (id) {
+      const fetchDetails = async () => {
+        const response = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=890f40c2acdc495344c2ef6e157c3786`);
+        const data = await response.json();
+        setDetails(data);
+      };
+
+      fetchDetails();
+    }
+  }, [id]);
+
+  if (!details) return <div>Loading...</div>;
+
+  return (
+    <div className="relative w-full h-[50vh] md:h-[60vh] lg:h-[90vh]">
+      <Image src='https://image.tmdb.org/t/p/w500${item.poster_path}' alt={details.title} layout="fill" objectFit="cover" />
+      <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center">
+        <div className="flex flex-col md:flex-row gap-9 items-center w-full max-w-5xl px-4 md:-ml-8">
+          <div className="md:w-1/3">
+            <Image src={details.titleCardUrl} alt={details.title} width={300} height={450} className="rounded-lg shadow-2xl" />
+          </div>
+          <div className="md:w-2/3 md:text-left">
+            <h1 className="text-4xl font-bold mb-4 text-white font-poppins">{details.title}</h1>
+            <p className="text-gray-300 mb-4">{details.overview}</p>
+            <p className="mb-2 text-gray-300"><strong>Release Date:</strong> {details.releaseDate}</p>
+            <p className="mb-2 text-gray-300"><strong>Rating:</strong> {details.rating}/10</p>
+            <div className="mb-4">
+              <strong className="text-gray-300">Genres: </strong>
+              {details.genre.map((g) => (
+                <span key={g} className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+                  {g}
+                </span>
+              ))}
+            </div>
+            <p className="mb-2 text-gray-300"><strong>Type:</strong> {details.type === 'movie' ? 'Movie' : 'TV Show'}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
